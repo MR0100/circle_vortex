@@ -29,7 +29,7 @@ class _HomeState extends State<Home> {
   TextEditingController modController = TextEditingController(text: "2");
   TextEditingController limitController = TextEditingController(text: "50");
   TextEditingController vortexController = TextEditingController(text: "10");
-
+  bool showCircle = false;
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -46,6 +46,7 @@ class _HomeState extends State<Home> {
               color: Colors.blue,
               child: CustomPaint(
                 painter: VortexPainter(
+                  showCircle: showCircle,
                   mod: int.parse(modController.text),
                   limit: int.parse(limitController.text),
                   vortex: int.parse(vortexController.text),
@@ -53,11 +54,27 @@ class _HomeState extends State<Home> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text("Mod"),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: Row(
                 children: [
+                  const Text("Show Circle"),
+                  Checkbox(
+                    value: showCircle,
+                    onChanged: (value) {
+                      setState(() {
+                        showCircle = value ?? false;
+                      });
+                    },
+                  )
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50),
+              child: Row(
+                children: [
+                  const Text("Mod"),
                   IconButton(
                     onPressed: () {
                       setState(() {
@@ -99,12 +116,11 @@ class _HomeState extends State<Home> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            const Text("Limit"),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: Row(
                 children: [
+                  const Text("Limit"),
                   IconButton(
                     onPressed: () {
                       setState(() {
@@ -146,12 +162,11 @@ class _HomeState extends State<Home> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            const Text("Vortex"),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 50),
               child: Row(
                 children: [
+                  const Text("Vortex"),
                   IconButton(
                     onPressed: () {
                       setState(() {
@@ -204,11 +219,12 @@ class VortexPainter extends CustomPainter {
   final int mod;
   final int limit;
   final int vortex;
-
+  final bool showCircle;
   VortexPainter({
     required this.mod,
     required this.limit,
     required this.vortex,
+    required this.showCircle,
   });
 
   List<VortexModel> _getVortexLineNumbers() {
@@ -224,7 +240,7 @@ class VortexPainter extends CustomPainter {
         vortexLinesNumber.add(VortexModel(first: i, last: tmp));
       }
     }
-    print(vortexLinesNumber);
+
     return vortexLinesNumber;
   }
 
@@ -260,24 +276,23 @@ class VortexPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // path to draw vortex lines.
-    Path _path = Path();
-    List<VortexLineOffset> vortexLinesOffset = _getPoints(size);
-    List<Offset> vortexPointsOnCircleBorderOffset = [];
-
     // circle center and radius.
     Offset circleCenter = size.center(Offset.zero);
     double circleRadius = size.width / 2;
 
     // drawing vortex circle.
-    canvas.drawCircle(
-        circleCenter,
-        circleRadius,
-        Paint()
-          ..color = Colors.red
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2);
+    if (showCircle) {
+      canvas.drawCircle(
+          circleCenter,
+          circleRadius,
+          Paint()
+            ..color = Colors.red
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2);
+    }
 
+    // drawing vortex lines.
+    List<VortexLineOffset> vortexLinesOffset = _getPoints(size);
     for (var element in vortexLinesOffset) {
       canvas.drawLine(element.start, element.end, Paint()..color = Colors.red);
     }
@@ -287,6 +302,7 @@ class VortexPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
+/// this is the vortex model used to manage data.
 class VortexModel {
   final int first;
   final int last;
@@ -294,6 +310,7 @@ class VortexModel {
   VortexModel({required this.first, required this.last});
 }
 
+/// this is vortex line offset data model to manage line data.
 class VortexLineOffset {
   final Offset start;
   final Offset end;
